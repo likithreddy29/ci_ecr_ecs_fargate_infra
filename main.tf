@@ -1,25 +1,3 @@
-terraform {
-  required_version = ">= 1.5.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-
-  # S3 Remote Backend Configuration
-  backend "s3" {
-    bucket = "likithreddy29-project1-tfstate"
-    key    = "ecr/terraform.tfstate" # Stores state under the 'ecr/' path
-    region = "us-east-1"             # Update if your bucket lives in a different region
-  }
-}
-
-# AWS Provider
-provider "aws" {
-  region = var.aws_region
-}
-
 # Amazon ECR Repository
 resource "aws_ecr_repository" "app_repo" {
   name                 = var.repository_name
