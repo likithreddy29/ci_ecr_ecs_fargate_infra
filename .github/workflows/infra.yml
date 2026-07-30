@@ -1,0 +1,93 @@
+name: Terraform Infrastructure Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Choose Terraform Action"
+        required: true
+        default: "apply"
+        type: choice
+        options:
+          - apply
+          - destroy
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: "us-east-1"
+  TF_VERSION: "1.8.0"
+
+jobs:
+  # Job 1: Format, Validate, and Plan (Works for both apply and destroy)
+  plan:
+    name: Terraform Plan (${{ inputs.action }})
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      - name: Terraform Validate
+        run: terraform validate -no-color
+
+      # Generates a destroy plan if 'destroy' is selected, otherwise normal plan
+      - name: Terraform Plan
+        run: |
+          if [ "${{ inputs.action }}" == "destroy" ]; then
+            terraform plan -destroy -no-color -input=false
+          else
+            terraform plan -no-color -input=false
+          fi
+
+  # Job 2: Wait for Manual Approval, then Execute Selected Action
+  execute:
+    name: Terraform Execute (${{ inputs.action }})
+    needs: plan
+    runs-on: ubuntu-latest
+    environment: production # Triggers manual approval gate in GitHub UI
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      # Runs apply or destroy depending on what you selected in the UI
+      - name: Terraform Execute Action
+        run: |
+          if [ "${{ inputs.action }}" == "destroy" ]; then
+            terraform destroy -auto-approve -input=false
+          else
+            terraform apply -auto-approve -input=false
+          fi
