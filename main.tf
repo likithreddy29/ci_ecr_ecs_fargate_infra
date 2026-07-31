@@ -39,18 +39,6 @@ resource "aws_ecr_lifecycle_policy" "repo_policy" {
 
 
 # ----------------------------------------------------
-# 1. ECR REPOSITORY (Your existing resource)
-# ----------------------------------------------------
-resource "aws_ecr_repository" "zomato_ecr" {
-  name                 = var.repository_name
-  image_tag_mutability = "MUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-}
-
-# ----------------------------------------------------
 # 2. NETWORKING (Default VPC & Subnets)
 # ----------------------------------------------------
 data "aws_vpc" "default" {
