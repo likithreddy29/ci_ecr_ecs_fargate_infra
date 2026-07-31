@@ -121,7 +121,7 @@ resource "aws_ecs_task_definition" "zomato_task" {
   container_definitions = jsonencode([
     {
       name      = "zomato-app"
-      image     = "${aws_ecr_repository.zomato_ecr.repository_url}:latest"
+      image     = "${aws_ecr_repository.app_repo.repository_url}:latest"
       essential = true
       portMappings = [
         {
