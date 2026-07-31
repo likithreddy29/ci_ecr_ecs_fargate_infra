@@ -19,18 +19,6 @@ variable "environment" {
 
 ## Adding ECS fargate and networking resources
 
-variable "aws_region" {
-  description = "AWS region for provisioning resources"
-  type        = string
-  default     = "us-east-1"
-}
-
-variable "repository_name" {
-  description = "Name of the ECR repository"
-  type        = string
-  default     = "zomato"
-}
-
 variable "app_port" {
   description = "Port exposed by the Docker container"
   type        = number
